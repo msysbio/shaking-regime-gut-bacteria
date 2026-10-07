@@ -1,0 +1,14 @@
+{
+  "title": "Analysis code for: Shaking regimes influence the growth of human gut bacteria",
+  "upload_type": "software",
+  "description": "R scripts that reproduce every analysis and figure in the paper 'Shaking regimes influence the growth of human gut bacteria' from the deposited data: endpoint-OD contrasts under static, pulsed and continuous shaking, between-run variance, within-plate reproducibility, flow-cytometry confirmation, OD-to-cell-count calibration, and blinded morphology scoring.",
+  "creators": [
+    {"name": "Daodu, Adedamola Godwin", "affiliation": "KU Leuven, Laboratory of Molecular Bacteriology, Rega Institute"},
+    {"name": "Saha, Pallabita", "affiliation": "KU Leuven, Laboratory of Molecular Bacteriology, Rega Institute"},
+    {"name": "Bravo-Ruiseco, Gabriela", "affiliation": "KU Leuven, Laboratory of Molecular Bacteriology, Rega Institute"},
+    {"name": "Zhou, Xingjian", "affiliation": "KU Leuven, Laboratory of Molecular Bacteriology, Rega Institute"},
+    {"name": "Faust, Karoline", "affiliation": "KU Leuven, Laboratory of Molecular Bacteriology, Rega Institute", "orcid": "0000-0001-7129-2803"}
+  ],
+  "license": "cc-by-nc-4.0",
+  "keywords": ["gut microbiome", "synthetic microbial communities", "optical density", "flow cytometry", "shaking regime", "microplate reader", "anaerobic bacteria", "reproducibility", "R"]
+}
