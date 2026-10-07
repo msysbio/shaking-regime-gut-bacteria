@@ -1,4 +1,4 @@
-# Load raw plate-reader + flow data, apply QC, write MASTER_* CSVs
+# Load the annotated MASTER_* tables, keep included wells, and check the design table
 
 library(tidyverse)
 
@@ -41,6 +41,7 @@ got <- dat %>%
   summarise(n = n_distinct(experiment), .groups = "drop") %>%
   pivot_wider(names_from = condition, values_from = n, values_fill = 0L) %>%
   select(species, Pulsed, Continuous, Static) %>%
+  mutate(species = as.character(species)) %>%
   arrange(species) %>% as.data.frame()
 
 cat("===== experiments per species x condition (included only) =====\n")

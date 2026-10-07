@@ -1,6 +1,8 @@
 # Run scripts 01-05 in order, with checks and logging
 
-DATA_DIR <- "/Users/u0176884/Desktop/final_metadata_shaking_regime"
+# Set DATA_DIR to the folder holding the scripts and the data files before sourcing,
+# or run from inside that folder.
+if (!exists("DATA_DIR")) DATA_DIR <- "."
 
 setwd(DATA_DIR)
 
@@ -68,10 +70,10 @@ if (all(results$status == "OK")) {
   cat("\nAll scripts completed. Result files written to:\n  ", DATA_DIR, "\n")
   cat("\nKey outputs to look at, in this order:\n")
   cat("  01_PvsC_route_comparison.csv  <- why P-vs-C is not identifiable\n")
-  cat("  02_endpoint_stats.csv         <- Fig 2A stats (the solid contrasts)\n")
-  cat("  03_FC_tests.csv               <- flow cytometry (SC 1.25x, RI null)\n")
-  cat("  04_batch_effects.csv          <- Fig 3 (why P-vs-C had to go)\n")
-  cat("  05_CoV_tests.csv              <- the headline: Pulsed 6/6 more reproducible\n")
+  cat("  02_endpoint_stats.csv         <- Fig 4 stats (the solid contrasts)\n")
+  cat("  03_FC_tests.csv               <- Fig 5 flow cytometry (SC 1.25x, RI null)\n")
+  cat("  04_batch_effects.csv          <- Fig 3A (why P-vs-C had to go)\n")
+  cat("  05_CoV_tests.csv              <- Fig 3B: Pulsed 6/6 more reproducible\n")
 } else {
   cat("\nSTOPPED at the first failure. Fix it and re-run; nothing downstream ran.\n")
 }

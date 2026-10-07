@@ -4,7 +4,7 @@ library(tidyverse)
 library(lme4)
 library(lmerTest)
 
-DATA_DIR <- "."
+if (!exists("DATA_DIR")) DATA_DIR <- "."
 
 source(file.path(DATA_DIR, "00_load_and_filter.R"))
 

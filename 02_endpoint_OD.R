@@ -134,7 +134,7 @@ cells <- dat |>
   summarise(n_runs = n_distinct(experiment), n_wells = n(),
             mean = round(mean(endpoint), 4), sd = round(sd(endpoint), 4),
             .groups = "drop")
-cat("\n--- cell means for Figure 2A ---\n")
+cat("\n--- cell means for Figure 4B ---\n")
 print(as.data.frame(cells), row.names = FALSE)
 write_csv(cells, file.path(DATA_DIR, "02_endpoint_celldata.csv"))
 

@@ -105,8 +105,8 @@ fc_tests <- map_dfr(c("SC", "RI"), function(sp) {
            round(t.test(P, C)$p.value, 3) else NA_real_
 
   tibble(species = sp, n_plates = nrow(x),
-         geom_mean_FC = round(ci["gm"], 3),
-         CI_lo = round(ci["lo"], 3), CI_hi = round(ci["hi"], 3),
+         geom_mean_FC = round(ci["gm"], 4),
+         CI_lo = round(ci["lo"], 4), CI_hi = round(ci["hi"], 4),
          concordant = sprintf("%d/%d plates %s 1.0",
                               sum(fcv > 1), length(fcv), ">"),
          wilcox_p_2sided = round(w$p.value, 4),

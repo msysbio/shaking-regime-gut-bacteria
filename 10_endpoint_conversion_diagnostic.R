@@ -75,10 +75,10 @@ fD <- ggplot(gt, aes(measured_cells_mL, predicted_cells_mL, colour=species)) +
   labs(title="Prediction vs measured endpoint",
        x="Measured endpoint cells/mL (flow cytometry)",
        y="Predicted cells/mL (calibration, extrapolated)",
-       caption="Dashed = 1:1. Error bars = 95% prediction interval of the extrapolated calibration (~4-6%); both points miss the 1:1 line by far more, so the gap is not calibration scatter but OD-density non-linearity at high density. Extrapolated 15-36x beyond OD 0.015; diagnostic only, not used for conversion.") +
+       caption=NULL) +
   theme_bw(11) + theme(panel.grid.minor=element_blank(),
                        plot.title=element_text(face="bold", colour=ACCENT),
-                       plot.caption=element_text(colour="#6B7280", size=8, hjust=0))
-ggsave(file.path(DATA_DIR,"FigDiag_predicted_vs_measured.png"), fD, width=7.0, height=6.2, dpi=300)
-ggsave(file.path(DATA_DIR,"FigDiag_predicted_vs_measured.pdf"), fD, width=7.0, height=6.2)
-cat("\nwrote 10_conversion_diagnostic.csv + FigDiag_predicted_vs_measured\n")
+                       plot.caption=NULL)
+ggsave(file.path(DATA_DIR,"FigS7_predicted_vs_measured.png"), fD, width=7.0, height=6.2, dpi=300)
+ggsave(file.path(DATA_DIR,"FigS7_predicted_vs_measured.pdf"), fD, width=7.0, height=6.2)
+cat("\nwrote 10_conversion_diagnostic.csv + FigS7_predicted_vs_measured\n")

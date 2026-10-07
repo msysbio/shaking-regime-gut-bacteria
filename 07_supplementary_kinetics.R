@@ -15,7 +15,7 @@ theme_pub <- function(base = 11) {
           strip.text = element_text(face = "bold", colour = NAVY),
           plot.title = element_text(face = "bold", colour = NAVY),
           plot.subtitle = element_text(colour = "#6B7280", size = base - 2),
-          plot.caption = element_text(colour = "#6B7280", size = base - 3.5, hjust = 0),
+          plot.caption = NULL,
           legend.position = "bottom")
 }
 save_fig <- function(p, name, w, h) {
@@ -61,7 +61,7 @@ fS3 <- ggplot(curves, aes(time_h, OD_show, colour = condition, fill = condition,
   labs(title = "Growth curves by species and shaking regime",
        subtitle = "One line per run (mean of wells); band = \u00b11 SD across wells; baseline-shifted to start near 0 | Static absent (endpoint-only)",
        x = "Time (h)", y = expression("OD"[600]*" (baseline-shifted)"), colour = NULL, fill = NULL,
-       caption = NO_TEST) +
+       caption = NULL) +
   theme_pub()
 save_fig(fS3, "FigS3_growth_curves", 10.0, 6.2)
 
@@ -88,20 +88,34 @@ run_means <- met |>
   group_by(species, condition, metric, experiment) |>
   summarise(m = mean(value, na.rm = TRUE), .groups = "drop")
 
-fS4 <- ggplot(met, aes(species, value, fill = condition)) +
-  geom_boxplot(outlier.shape = NA, alpha = 0.5, width = 0.65, colour = "grey40",
+s4_panel <- function(m, ttl, ylab) {
+  ggplot(filter(met, metric == m), aes(species, value, fill = condition)) +
+    geom_boxplot(outlier.shape = NA, alpha = 0.5, width = 0.65, colour = "grey40",
+                 position = position_dodge(0.75)) +
+    geom_point(data = filter(run_means, metric == m), aes(y = m, group = condition),
+               shape = 21, size = 1.9, fill = "white", colour = "grey20", stroke = 0.5,
                position = position_dodge(0.75)) +
-  geom_point(data = run_means, aes(y = m, group = condition), shape = 21, size = 1.9,
-             fill = "white", colour = "grey20", stroke = 0.5,
-             position = position_dodge(0.75)) +
-  facet_wrap(~metric, scales = "free_y", nrow = 2) +
-  scale_fill_manual(values = PAL[c("Pulsed", "Continuous")], drop = TRUE) +
-  labs(title = "Kinetic growth-curve metrics by species and shaking regime",
-       subtitle = "Boxes = wells | white points = per-run means | Static absent: no growth curve was recorded",
-       x = NULL, y = NULL, fill = NULL,
-       caption = paste0(NO_TEST, "\n",
-         "AUC is baseline-corrected (AUC_delta) because starting OD differs across runs. FD was run at two starting ODs (0.010, 0.027).")) +
-  theme_pub()
+    scale_fill_manual(values = PAL[c("Pulsed", "Continuous")], drop = TRUE) +
+    labs(title = ttl, x = NULL, y = ylab, fill = NULL) +
+    theme_pub() + theme(plot.title = element_text(size = 11))
+}
+fS4 <- (s4_panel("AUC (baseline-corrected, OD*h)", "A. Area under the growth curve (baseline-corrected)",
+                 expression("AUC (OD"[600] %*% "h)")) +
+        s4_panel("Maximum OD", "B. Maximum OD",
+                 expression("Maximum OD"[600])) +
+        s4_panel("Max. specific growth rate (1/h)", "C. Maximum specific growth rate",
+                 expression(mu[max]*" (h"^-1*")")) +
+        s4_panel("Time to maximum OD (h)", "D. Time to maximum OD",
+                 "Time to maximum OD (h)")) +
+  plot_layout(ncol = 2, guides = "collect") +
+  plot_annotation(
+    title = "Kinetic growth-curve metrics by species and shaking regime",
+    subtitle = "Boxes = wells | white points = per-run means | Static absent: no growth curve was recorded",
+    caption = NULL,
+    theme = theme(plot.title = element_text(face = "bold", colour = NAVY, size = 13),
+                  plot.subtitle = element_text(colour = "#6B7280", size = 9),
+                  plot.caption = NULL)) &
+  theme(legend.position = "bottom")
 save_fig(fS4, "FigS4_kinetic_metrics", 10.5, 7.0)
 
 cov_t <- ts |>
@@ -134,7 +148,7 @@ pB <- ggplot(cov_bar, aes(condition, mean_CoV, fill = condition)) +
   geom_col(alpha = 0.5, colour = "grey40", width = 0.62) +
   geom_point(data = cov_run, aes(y = CoV), shape = 21, size = 2.2,
              fill = "white", colour = "grey20", stroke = 0.6,
-             position = position_jitter(width = 0.07, height = 0)) +
+             position = position_jitter(width = 0.07, height = 0, seed = 1)) +
   geom_text(data = cov_run |> filter(flag),
             aes(y = CoV, label = sprintf("%.0f%% (SD > mean)", CoV)),
             vjust = -1.1, size = 2.5, colour = ACCENT, fontface = "bold") +
@@ -148,13 +162,9 @@ pB <- ggplot(cov_bar, aes(condition, mean_CoV, fill = condition)) +
 fS5 <- (pA / pB) +
   plot_annotation(
     title = "Well-to-well variability during growth",
-    caption = paste0(
-      "Pulsed shaking gave the lower well-to-well CoV over the growth phase in 5 of 6 species (E. coli the exception).\n",
-      "In M. gnavus, one continuous run exceeds 100% CoV (SD > mean) and inflates its continuous mean, so M. gnavus's ranking rests on that run.\n",
-      "That plate should not be read as a measurement, and it alone drives MG's kinetic Continuous mean.\n",
-      "Static is absent throughout: it has no growth curve. As above, no test on a kinetic metric is reported here."),
+    caption = NULL,
     theme = theme(plot.title = element_text(face = "bold", colour = NAVY, size = 14),
-                  plot.caption = element_text(colour = "#6B7280", size = 7, hjust = 0)))
+                  plot.caption = NULL))
 save_fig(fS5, "FigS5_kinetic_CoV", 10.5, 9.5)
 
 cat("\nSupplementary kinetic figures written to", DATA_DIR, "\n")

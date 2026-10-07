@@ -1,4 +1,4 @@
-# Main figures (Fig 1-5)
+# Main figures (Figs 3-5) and Fig S2
 
 suppressMessages({library(tidyverse); library(ggrepel); library(patchwork)})
 if (!exists("DATA_DIR")) DATA_DIR <- "."
@@ -15,7 +15,7 @@ theme_pub <- function(base = 11) {
           strip.text = element_text(face = "bold", colour = NAVY),
           plot.title = element_text(face = "bold", colour = NAVY),
           plot.subtitle = element_text(colour = "#6B7280", size = base - 1),
-          plot.caption = element_text(colour = "#6B7280", size = base - 2, hjust = 0),
+          plot.caption = NULL,
           legend.position = "bottom")
 }
 save_fig <- function(p, name, w, h) {
@@ -58,20 +58,35 @@ pts <- dl |>
   left_join(nlab, by="species") |>
   mutate(lab = factor(lab, levels=levels(est$lab)))
 
+# Background shading: left of zero = static yields more biomass (static grey);
+# right of zero = the shaking regime yields more (that regime's colour).
+L <- max(abs(c(est$lo, est$hi, pts$delta)), na.rm = TRUE) * 1.08
+shade <- tibble(regime = factor(rep(levels(est$regime), each = 2), levels = levels(est$regime)),
+                side   = rep(c("Static", "Shaken"), 2),
+                xmin   = rep(c(-L, 0), 2), xmax = rep(c(0, L), 2)) |>
+  mutate(fill_key = ifelse(side == "Static", "Static",
+                           ifelse(regime == "Pulsed - Static", "Pulsed", "Continuous")),
+         fill_key = factor(fill_key, levels = c("Static", "Pulsed", "Continuous")))
+
 p <- ggplot(est, aes(estimate, lab, colour=regime)) +
+  geom_rect(data = shade, inherit.aes = FALSE,
+            aes(xmin = xmin, xmax = xmax, ymin = -Inf, ymax = Inf, fill = fill_key),
+            alpha = 0.16) +
   geom_vline(xintercept=0, linetype="dashed", colour="grey50", linewidth=0.4) +
   geom_point(data=pts, aes(x=delta, y=lab), shape=21, size=1.9,
              fill="white", stroke=0.5, alpha=0.85,
              position=position_nudge(y=0.22)) +
-  geom_errorbarh(aes(xmin=lo, xmax=hi), height=0.18, linewidth=0.7, na.rm=TRUE) +
+  geom_errorbar(aes(xmin=lo, xmax=hi), width=0.18, orientation="y", linewidth=0.7, na.rm=TRUE) +
   geom_point(size=3.2, na.rm=TRUE) +
   geom_text(aes(x=Inf, label=txt), hjust=1.05, size=4, colour=NAVY, fontface="bold") +
   facet_wrap(~regime, nrow=1) +
   scale_colour_manual(values=unname(PAL[c("Pulsed","Continuous")]), guide="none") +
-  scale_x_continuous(expand=expansion(mult=c(0.08, 0.42))) +
+  scale_fill_manual(values = PAL, name = "Shaded side: higher endpoint biomass under",
+                    guide = guide_legend(override.aes = list(alpha = 0.35))) +
+  scale_x_continuous(breaks=c(-0.5, -0.25, 0, 0.25, 0.5), expand=expansion(mult=c(0, 0.42))) +
   labs(title="A",
        subtitle="Effect on endpoint OD (shaken plate vs its matched static plate)",
-       x="<--- Static yields MORE biomass          Shaking yields MORE biomass --->",
+       x=expression("Difference in endpoint OD"[600]*" (shaken "-" static)"),
        y=NULL,
        caption=NULL) +
   theme_bw(13) +
@@ -82,7 +97,9 @@ p <- ggplot(est, aes(estimate, lab, colour=regime)) +
         axis.text.y=element_text(size=11),
         axis.text.x=element_text(size=11),
         plot.title=element_text(face="bold", colour=NAVY, size=16),
-        axis.title.x=element_text(size=13, colour=NAVY, face="bold", lineheight=1.4))
+        axis.title.x=element_text(size=13, colour=NAVY, lineheight=1.4),
+        legend.position="bottom", legend.title=element_text(size=11.5, colour=NAVY),
+        legend.text=element_text(size=11))
 f2a_forest <- p
 
 stats2 <- read_csv(file.path(DATA_DIR, "02_endpoint_stats.csv"), show_col_types = FALSE)
@@ -102,7 +119,7 @@ f2a <- ggplot(wells, aes(condition, endpoint, fill = condition)) +
   geom_boxplot(outlier.shape = NA, alpha = 0.55, width = 0.62, colour = "grey35") +
   geom_point(data = run_means, aes(y = m), shape = 21, size = 2.4,
              fill = "white", colour = "grey20", stroke = 0.7,
-             position = position_jitter(width = 0.09, height = 0)) +
+             position = position_jitter(width = 0.09, height = 0, seed = 1)) +
   geom_text(data = ann, inherit.aes = FALSE,
             aes(x = condition, y = y, label = label),
             size = 3.6, colour = NAVY, lineheight = 0.9) +
@@ -128,10 +145,10 @@ fig2a <- (f2a_forest / f2a) +
   plot_layout(heights = c(1, 1.15)) +
   plot_annotation(
     title = "Endpoint OD by shaking regime",
-    caption = "A: within-run contrasts vs paired Static (only estimable pair). B: all three regimes. FD at two inocula. Bonferroni k=2. */**/*** = p<0.05/0.01/0.001.",
+    caption = NULL,
     theme = theme(plot.title = element_text(face = "bold", colour = NAVY, size = 16),
-                  plot.caption = element_text(colour = "#6B7280", size = 7, hjust = 0)))
-save_fig(fig2a, "Fig2A_endpoint_OD", 10.6, 11.2)
+                  plot.caption = NULL))
+save_fig(fig2a, "Fig4_endpoint_OD", 10.6, 11.2)
 
 fcp <- read_csv(file.path(DATA_DIR, "03_FC_plate_foldchange.csv"), show_col_types = FALSE)
 fct <- read_csv(file.path(DATA_DIR, "03_FC_tests.csv"), show_col_types = FALSE)
@@ -149,7 +166,7 @@ f2b <- ggplot(fcp, aes(species, fold_change)) +
                 aes(x = species, y = geom_mean_FC, ymin = CI_lo, ymax = CI_hi),
                 width = 0.5, fill = "grey92", colour = NAVY, linewidth = 0.4, alpha = 0.6) +
   geom_point(aes(fill = regime), shape = 21, size = 4, stroke = 0.7,
-             colour = "grey20", position = position_jitter(width = 0.10, height = 0)) +
+             colour = "grey20", position = position_jitter(width = 0.10, height = 0, seed = 1)) +
   geom_text(data = lab, inherit.aes = FALSE,
             aes(x = species, y = 1.90, label = label),
             size = 3.4, colour = NAVY, lineheight = 1.05) +
@@ -158,9 +175,9 @@ f2b <- ggplot(fcp, aes(species, fold_change)) +
   labs(title = "Cell density (flow cytometry) vs paired static",
        subtitle = "Each point = one plate | bar = geometric mean +/- 95% bootstrap CI",
        x = NULL, y = "Fold change in cells/mL (shaking / static)\nabove 1.0 = shaking yields MORE cells", fill = NULL,
-       caption = "* = 95% CI excludes 1.0 (the significance criterion); t-test on log2 FC shown. Pulsed vs Continuous not tested.") +
+       caption = NULL) +
   theme_pub()
-save_fig(f2b, "Fig2B_flow_cytometry", 6.8, 6.8)
+save_fig(f2b, "Fig5_flow_cytometry", 6.8, 6.8)
 
 bat <- read_csv(file.path(DATA_DIR, "04_batch_effects.csv"), show_col_types = FALSE) |>
   mutate(condition = factor(condition, levels = LEVELS),
@@ -206,9 +223,9 @@ fig3 <- (f3 | f4) +
   plot_layout(widths = c(1.35, 1)) +
   plot_annotation(
     title = "Between-plate and within-plate variation in endpoint OD",
-    caption = "A: share of variance from run identity (high = between-plate comparison unsafe). B: within-plate CoV, lower under pulsed in 6/6 species. A and B are different quantities; do not rank species across them (see Fig. S2).",
+    caption = NULL,
     theme = theme(plot.title = element_text(face = "bold", colour = NAVY, size = 14),
-                  plot.caption = element_text(colour = "#6B7280", size = 7, hjust = 0)))
+                  plot.caption = NULL))
 save_fig(fig3, "Fig3_variation", 13.4, 6.6)
 
 cat("\nAll figures written to", DATA_DIR, "\n")
@@ -240,20 +257,29 @@ sc_dat <- b_s |> group_by(species) |>
     labels = c("Absolute spread (OD units)",
                "Same spread, as % of that species' own mean OD")))
 
-fS2 <- ggplot(sc_dat, aes(mu_max, val)) +
-  geom_smooth(method = "lm", se = FALSE, colour = "grey75",
-              linewidth = 0.5, linetype = "dashed", formula = y ~ x) +
-  geom_point(size = 3.4, colour = NAVY) +
-  ggrepel::geom_text_repel(aes(label = species), size = 3.2, colour = NAVY,
-                           fontface = "bold", box.padding = 0.4, seed = 1) +
-  facet_wrap(~metric, scales = "free_y") +
-  scale_y_continuous(expand = expansion(mult = 0.14)) +
-  scale_x_continuous(expand = expansion(mult = 0.12)) +
-  labs(title = "Between-plate spread versus growth rate",
-       subtitle = "One point per species | exploratory, n=5",
-       x = "Mean maximum specific growth rate (1/h)", y = NULL,
-       caption = "Left: absolute SD tracks growth rate. Right: normalised, relationship largely gone (~11-17%). SC is the exception at 3%. Post-hoc, n=5.") +
-  theme_pub()
+s2_panel <- function(m, ttl, ylab) {
+  ggplot(filter(sc_dat, metric == m), aes(mu_max, val)) +
+    geom_smooth(method = "lm", se = FALSE, colour = "grey75",
+                linewidth = 0.5, linetype = "dashed", formula = y ~ x) +
+    geom_point(size = 3.4, colour = NAVY) +
+    ggrepel::geom_text_repel(aes(label = species), size = 3.2, colour = NAVY,
+                             fontface = "bold", box.padding = 0.4, seed = 1) +
+    scale_y_continuous(expand = expansion(mult = 0.14)) +
+    scale_x_continuous(expand = expansion(mult = 0.12)) +
+    labs(title = ttl, x = "Mean maximum specific growth rate (1/h)", y = ylab) +
+    theme_pub() + theme(plot.title = element_text(size = 11))
+}
+fS2 <- (s2_panel("Absolute spread (OD units)", "A. Absolute",
+                 expression("Between-run SD of endpoint OD"[600])) |
+        s2_panel("Same spread, as % of that species' own mean OD", "B. Relative to each species' mean",
+                 expression("Between-run CoV of endpoint OD"[600]*" (%)"))) +
+  plot_annotation(
+    title = "Between-run variation in endpoint OD versus growth rate",
+    subtitle = "One point per species | exploratory, n = 5",
+    caption = NULL,
+    theme = theme(plot.title = element_text(face = "bold", colour = NAVY, size = 13),
+                  plot.subtitle = element_text(colour = "#6B7280", size = 10),
+                  plot.caption = NULL))
 save_fig(fS2, "FigS2_spread_vs_growthrate", 8.4, 5.4)
 
 cat("\nAll figures written to", DATA_DIR, "\n")

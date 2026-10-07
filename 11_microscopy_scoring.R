@@ -1,4 +1,4 @@
-# Blinded morphology scoring and rater agreement
+# Blinded morphology scoring and rater agreement (Fig 6)
 
 suppressMessages({library(tidyverse); library(irrCAC); library(patchwork)})
 if (!exists("DATA_DIR")) DATA_DIR <- "."
@@ -62,7 +62,7 @@ theme_p <- function(b=11) theme_bw(b) + theme(
 
 pA <- ggplot(fld, aes(species, chaining)) +
   geom_boxplot(outlier.shape=NA, width=0.6, alpha=0.35, fill="#C9CDE0", colour="grey40") +
-  geom_jitter(aes(colour=condition), width=0.18, height=0.05, size=1.6, alpha=0.85) +
+  geom_point(aes(colour=condition), position=position_jitter(width=0.18, height=0.05, seed=1), size=1.6, alpha=0.85) +
   scale_colour_manual(values=PAL, drop=FALSE) +
   scale_y_continuous(breaks=0:2, limits=c(-0.15,2.15)) +
   labs(title="A", subtitle="Chaining by species (0 single / 1 short / 2 long)",
@@ -71,7 +71,7 @@ pA <- ggplot(fld, aes(species, chaining)) +
 
 pB <- ggplot(fld, aes(condition, aggregation, fill=condition)) +
   geom_boxplot(outlier.shape=NA, width=0.65, alpha=0.55, colour="grey40") +
-  geom_jitter(width=0.15, height=0.05, size=1.3, alpha=0.7, colour="grey25") +
+  geom_point(position=position_jitter(width=0.15, height=0.05, seed=1), size=1.3, alpha=0.7, colour="grey25") +
   facet_wrap(~species, nrow=1) +
   scale_fill_manual(values=PAL, drop=FALSE) +
   scale_y_continuous(breaks=0:2, limits=c(-0.15,2.15)) +
@@ -84,25 +84,22 @@ ac2_long <- bind_rows(
   ac2 |> transmute(species, axis="Chaining",    AC2=AC2_chaining,    lo=chn_lo, hi=chn_hi))
 pC <- ggplot(ac2_long, aes(axis, species, fill=AC2)) +
   geom_tile(colour="white", linewidth=1) +
-  geom_text(aes(label=sprintf("%.2f",AC2), colour=AC2>0.80),
+  geom_text(aes(label=sprintf("%.2f\n(%.2f-%.2f)",AC2,lo,hi), colour=AC2>0.80), lineheight=0.9,
             size=3.6, fontface="bold", show.legend=FALSE) +
   scale_fill_gradient2(low="#B85042", mid="#EAECEF", high="#1D9E75", midpoint=0.5,
                        limits=c(0,1), name="Gwet AC2") +
   scale_colour_manual(values=c(`TRUE`="white",`FALSE`=NAVY)) +
-  labs(title="C", subtitle="Inter-rater agreement, Gwet AC2 (2 blinded raters; 95% CIs in Table Sx)", x=NULL, y=NULL) +
+  labs(title="C", subtitle="Inter-rater agreement, Gwet AC2 with 95% CI (2 blinded raters)", x=NULL, y=NULL) +
   theme_p() + theme(panel.grid=element_blank(), legend.position="right")
 
 fig5 <- (pA | pC) / pB + plot_layout(heights=c(1, 1)) +
   plot_annotation(
-    caption=paste0(
-      "Two independent blinded raters; imaging scientist excluded. Points = fields (mean of raters).\n",
-      "A, B are descriptive: regime differences are shown, not tested (replication is at the slide level; most\n",
-      "non-Static arms are a single slide). C shows inter-rater agreement (quadratic-weighted Gwet AC2, 95% CI)."),
-    theme=theme(plot.caption=element_text(colour="#6B7280", size=7.5, hjust=0)))
+    caption=NULL,
+    theme=theme(plot.caption=NULL))
 
-ggsave(file.path(DATA_DIR,"Fig5_morphology.png"), fig5, width=11, height=8.4, dpi=300)
-ggsave(file.path(DATA_DIR,"Fig5_morphology.pdf"), fig5, width=11, height=8.4)
+ggsave(file.path(DATA_DIR,"Fig6_morphology.png"), fig5, width=11, height=8.4, dpi=300)
+ggsave(file.path(DATA_DIR,"Fig6_morphology.pdf"), fig5, width=11, height=8.4)
 
 cat("=== AC2 agreement ===\n"); print(as.data.frame(ac2), row.names=FALSE)
 cat("\n=== representative fields (for image pulls) ===\n"); print(as.data.frame(rep_fields), row.names=FALSE)
-cat("\nwrote Fig5_morphology + 3 CSVs\n")
+cat("\nwrote Fig6_morphology + 3 CSVs\n")

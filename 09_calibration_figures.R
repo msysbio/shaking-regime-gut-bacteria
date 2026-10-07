@@ -1,4 +1,4 @@
-# Calibration figure (Fig 1)
+# Calibration figures (Fig 2 and Fig S1)
 
 suppressMessages({library(tidyverse); library(ggrepel)})
 if (!exists("DATA_DIR")) DATA_DIR <- "."
@@ -10,7 +10,7 @@ theme_pub <- function(base=11) theme_bw(base) +
   theme(panel.grid.minor=element_blank(),
         plot.title=element_text(face="bold", colour=NAVY),
         plot.subtitle=element_text(colour="#6B7280", size=base-2),
-        plot.caption=element_text(colour="#6B7280", size=base-3.5, hjust=0),
+        plot.caption=NULL,
         legend.position="right")
 save_fig <- function(p,n,w,h){ggsave(file.path(DATA_DIR,paste0(n,".png")),p,width=w,height=h,dpi=300)
   ggsave(file.path(DATA_DIR,paste0(n,".pdf")),p,width=w,height=h); cat("wrote",n,"\n")}
@@ -50,9 +50,9 @@ fMain <- ggplot(pt, aes(target_OD, cells, colour=species)) +
                      labels=scales::label_number(accuracy=0.001)) +
   scale_y_continuous(labels=scales::label_number(scale=1e-6, suffix=" M")) +
   labs(x=expression("OD"[600]), y="Cell density (cells/mL)",
-       caption="Labels: cells/OD relative to SC. *FD in YCFAG; others in WC. Spectrophotometer, OD 0.001-0.015. EC not calibrated.") +
+       caption=NULL) +
   theme_pub()
-save_fig(fMain, "FigCal_crossspecies", 8.8, 5.6)
+save_fig(fMain, "Fig2_calibration", 8.8, 5.6)
 
 r2lab <- fits |> mutate(txt=sprintf("R2 = %.3f\nslope = %.2e", R2, slope))
 fSupp <- ggplot(pt, aes(target_OD, cells)) +
@@ -66,8 +66,8 @@ fSupp <- ggplot(pt, aes(target_OD, cells)) +
   scale_x_continuous(breaks=seq(0,0.015,0.005)) +
   scale_y_continuous(labels=scales::label_number(scale=1e-6, suffix=" M")) +
   labs(x=expression("OD"[600]), y="Cell density (cells/mL)",
-       caption="Points = replicate-well means +/- SD; dashed = linear fit. FD in YCFAG; others in WC.") +
+       caption=NULL) +
   theme_pub()
-save_fig(fSupp, "FigScal_curves", 9.5, 6.0)
+save_fig(fSupp, "FigS1_calibration_fits", 9.5, 6.0)
 
 cat("\ncalibration figures done\n")
